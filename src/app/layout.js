@@ -2,6 +2,7 @@ import { Prompt } from "next/font/google";
 import { Aside } from "@/components/Aside";
 import "./globals.css";
 import { SearchForm } from "@/components/SearchForm";
+import { ReactQueryProvider } from "./ReactQueryProvider";
 
 export const metadata = {
   title: "Code Connect",
@@ -17,7 +18,8 @@ const prompt = Prompt({
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-br" className={prompt.className}>
-      <body>
+      <ReactQueryProvider>
+        <body>
         <div className="app-container">
           <div>
             <Aside />
@@ -28,6 +30,7 @@ export default function RootLayout({ children }) {
           </div>
         </div>
       </body>
+      </ReactQueryProvider>
     </html>
   );
 }
