@@ -45,6 +45,7 @@ export default function Home({ searchParams }) {
   const postRatingQueries = useQueries({
     // queries paralelas
     // o useQueries vai gerar um array com os identificadores das queries
+    // o queries vai ler o array da query anterior e ir executando as outras queries
     queries:
       posts?.data.length > 0
         ? posts.data.map((post) => ({
