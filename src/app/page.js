@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { CardPost } from "@/components/CardPost";
 import { Spinner } from "@/components/Spinner";
 import styles from "./page.module.css";
@@ -13,6 +13,12 @@ const fetchPosts = async ({ page }) => {
 
   return data;
 };
+
+export const fetchPostRating = async ({ postId }) => {
+  const results = await fetch(`http://localhost:3000/api/post?postId=${postId}`);
+  const data = await results.json();
+  return data;
+}
 
 export default function Home({ searchParams }) {
   const currentPage = parseInt(searchParams?.page || 1);
@@ -36,7 +42,26 @@ export default function Home({ searchParams }) {
     // refetchOnWindowFocus: false,
   });
 
-  const ratingsAndCartegoriesMap = null;
+  const postRatingQueries = useQueries({
+    // queries paralelas
+    // o useQueries vai gerar um array com os identificadores das queries
+    queries:
+      posts?.data.length > 0
+        ? posts.data.map((post) => ({
+          queryKey: ["postHome", post.id],
+          queryFn: () => fetchPostRating({ postId: post.id }),
+          // só vai rodar a query se existir o id
+          enabled: !!post.id,
+        }))
+        : [],
+  });
+ // 
+  const ratingsAndCartegoriesMap = postRatingQueries?.reduce((acc, query) => {
+    if (!query.isPending && query.data && query.data.id) {
+      acc[query.data.id] = query.data;
+    }
+    return acc;
+  }, {});
 
   return (
     <main className={styles.grid}>
