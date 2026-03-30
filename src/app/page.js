@@ -7,11 +7,11 @@ import styles from "./page.module.css";
 import Link from "next/link";
 
 const fetchPosts = async ({ page }) => {
-    const results = await fetch(`http://localhost:3000/api/posts?page=${page}`);
-    
-    const data = await results.json();
-    
-    return data;
+  const results = await fetch(`http://localhost:3000/api/posts?page=${page}`);
+
+  const data = await results.json();
+
+  return data;
 };
 
 export default function Home({ searchParams }) {
@@ -26,6 +26,14 @@ export default function Home({ searchParams }) {
   const { data: posts, isLoading, isFetching } = useQuery({
     queryKey: ["posts", currentPage],
     queryFn: () => fetchPosts({ page: currentPage }),
+    // staleTime representa o tempo em ms que a query fica no cache
+    staleTime: 2000,
+    // gcTime limpa a memória de cache inativos
+    // gcTime: 2000
+    // refetchInterval atualiza a query a cada 2s
+    // refetchInterval: 2000
+    // refetchIntervalInBackground por padrão é true, o que força a atualizar a query em segundo plano quando acessa o navegador
+    // refetchOnWindowFocus: false,
   });
 
   const ratingsAndCartegoriesMap = null;
