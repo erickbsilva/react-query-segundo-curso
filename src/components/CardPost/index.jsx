@@ -5,8 +5,43 @@ import styles from "./cardpost.module.css";
 import Link from "next/link";
 import { ThumbsUpButton } from "./ThumbsUpButton";
 import { ModalComment } from "../ModalComment";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const CardPost = ({ post, highlight, rating, category, isFetching }) => {
+export const CardPost = ({ post, highlight, rating, category, isFetching, currentPage }) => {
+
+  const queryClient = useQueryClient();
+
+  const thumbsMutation = useMutation({
+    // mutationKey representa o identificador da mutation
+    // mutationFn representa a funcao que ira executar a mutation
+    // postData representa os dados da mutation
+    // mutation para gravar os likes
+    mutationFn: (postData) => {
+      return fetch("http://localhost:3000/api/thumbs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(postData)
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`A resposta de rede não está ok. status ${response.status}`);
+        }
+        return response.json();
+      });
+    },
+    // invalidação das queries
+    // invalida as queries relacionadas ao post para atualizar o cache
+    onSuccess: () => {
+      queryClient.invalidateQueries(["post", post.slug]);
+      queryClient.invalidateQueries(["posts", currentPage]);
+    },
+    onError: (error, variables) => {
+      console.error(
+        `Erro ao salvar o thumbsUp para o slug: ${variables.slug}`,
+        { error }
+      );
+    }
+  });
+
   return (
     <article className={styles.card} style={{ width: highlight ? 993 : 486 }}>
       <header className={styles.header}>
@@ -25,7 +60,10 @@ export const CardPost = ({ post, highlight, rating, category, isFetching }) => {
       </section>
       <footer className={styles.footer}>
         <div className={styles.actions}>
-          <form>
+          <form onClick={(event) => {
+            event.preventDefault();
+            thumbsMutation.mutate({ slug: post.slug });
+          }}>
             <ThumbsUpButton disable={isFetching} />
             <p>{post.likes}</p>
           </form>
