@@ -65,6 +65,9 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
             thumbsMutation.mutate({ slug: post.slug });
           }}>
             <ThumbsUpButton disable={isFetching} />
+            {thumbsMutation.isError && (
+              <p className={styles.ThumbsUpButtonMessage}>Ops, ocorreu um erro: {thumbsMutation.error.message}</p>
+            )}
             <p>{post.likes}</p>
           </form>
           <div>
