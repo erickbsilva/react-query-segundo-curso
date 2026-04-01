@@ -7,9 +7,12 @@ import { Textarea } from "../Textarea";
 import { SubmitButton } from "../SubmitButton";
 import { Comment } from "../Comment";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useReplyMutation } from "@/app/hooks/useReplyMutation";
 
 export const ReplyModal = ({ comment, slug }) => {
   const modalRef = useRef(null);
+
+  const { mutate, isSuccess } = useReplyMutation(slug);
 
   const queryClient = useQueryClient();
 
@@ -17,35 +20,37 @@ export const ReplyModal = ({ comment, slug }) => {
     modalRef.current.openModal();
   };
 
-    const closeModal = () => {
+  const closeModal = () => {
     modalRef.current.closeModal();
   };
 
-  const replyMutation = useMutation({
-    mutationFn: (commentData) => {
-      return fetch(`http://localhost:3000/api/comment/${comment.id}/replies`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(commentData)
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error status: ${response.status}`);
-        }
 
-        return response.json();
-      });
-    },
-    onSuccess: () => {
-      closeModal();
-      queryClient.invalidateQueries(["post", slug]);
-    },
-    onError: (error, variables) => {
-      console.error(
-        `Erro ao salvar resposta ao comentário para o slug: ${variables.slug}`,
-        { error }
-      );
-    },
-  })
+
+  // const replyMutation = useMutation({
+  //   mutationFn: (commentData) => {
+  //     return fetch(`http://localhost:3000/api/comment/${comment.id}/replies`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(commentData)
+  //     }).then((response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error status: ${response.status}`);
+  //       }
+
+  //       return response.json();
+  //     });
+  //   },
+  //   onSuccess: () => {
+  //     closeModal();
+  //     queryClient.invalidateQueries(["post", slug]);
+  //   },
+  //   onError: (error, variables) => {
+  //     console.error(
+  //       `Erro ao salvar resposta ao comentário para o slug: ${variables.slug}`,
+  //       { error }
+  //     );
+  //   },
+  // })
 
   const onSubmitCommentReply = (event) => {
     event.preventDefault();
@@ -53,8 +58,12 @@ export const ReplyModal = ({ comment, slug }) => {
     const formData = new FormData(event.target);
     const text = formData.get("text");
 
-    replyMutation.mutate({ comment, text });
+    mutate({ comment, text });
   };
+
+  if (isSuccess) {
+    closeModal();
+  }
 
   return (
     <>
