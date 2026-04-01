@@ -32,6 +32,7 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
     },
     // invalidação das queries
     // invalida as queries relacionadas ao post para atualizar o cache
+    // PREFIRA ESSE PARA ATUALIZAR O CACHE
     // onSuccess: () => {
     //   queryClient.invalidateQueries(["post", post.slug]);
     //   queryClient.invalidateQueries(["posts", currentPage]);
