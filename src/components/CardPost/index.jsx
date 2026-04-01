@@ -42,6 +42,39 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
     }
   });
 
+  const submitCommentMutation = useMutation({
+    mutationFn: (commentData) => {
+      return fetch(`http://localhost:3000/api/comment/${post.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(commentData),
+      })
+    },
+    onSuccess: () => {
+      // invalida as queries relacionadas ao post para atualizar o cache
+      queryClient.invalidateQueries(["post", post.slug]);
+      queryClient.invalidateQueries(["posts", currentPage]);
+    },
+    onError: (error, variables) => {
+      console.error(
+        `Erro ao salvar o comentário para o slug: ${variables.slug}`,
+        { error }
+      );
+    },
+  })
+
+  const onSubmitComment = (event) => {
+    event.preventDefault();
+
+    // Recupera os dados do formulário
+    const formData = new FormData(event.target);
+    // Recupera o texto do formulário
+    const text = formData.get("text");
+
+    // Envia o comentário para a API usando o mutation
+    submitCommentMutation.mutate({ id: post.id, text });
+  };
+
   return (
     <article className={styles.card} style={{ width: highlight ? 993 : 486 }}>
       <header className={styles.header}>
@@ -71,7 +104,7 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
             <p>{post.likes}</p>
           </form>
           <div>
-            <ModalComment />
+            <ModalComment onSubmit={onSubmitComment} />
             <p>{post.comments.length}</p>
           </div>
           {rating && (
