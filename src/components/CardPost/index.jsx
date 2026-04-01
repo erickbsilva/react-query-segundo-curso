@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ThumbsUpButton } from "./ThumbsUpButton";
 import { ModalComment } from "../ModalComment";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+
 
 export const CardPost = ({ post, highlight, rating, category, isFetching, currentPage }) => {
 
@@ -30,10 +32,10 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
     },
     // invalidação das queries
     // invalida as queries relacionadas ao post para atualizar o cache
-    onSuccess: () => {
-      queryClient.invalidateQueries(["post", post.slug]);
-      queryClient.invalidateQueries(["posts", currentPage]);
-    },
+    // onSuccess: () => {
+    //   queryClient.invalidateQueries(["post", post.slug]);
+    //   queryClient.invalidateQueries(["posts", currentPage]);
+    // },
     onError: (error, variables) => {
       console.error(
         `Erro ao salvar o thumbsUp para o slug: ${variables.slug}`,
@@ -41,6 +43,13 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
       );
     }
   });
+
+  // atualização otimista via UI
+useEffect(() => {
+    if (thumbsMutation.isPending && thumbsMutation.variables) {
+        post.likes = post.likes + 1;
+    }
+}, [thumbsMutation.isPending, thumbsMutation.variables]);
 
   const submitCommentMutation = useMutation({
     mutationFn: (commentData) => {
