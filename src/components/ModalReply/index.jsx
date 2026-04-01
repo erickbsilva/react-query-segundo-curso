@@ -6,18 +6,60 @@ import styles from "./replymodal.module.css";
 import { Textarea } from "../Textarea";
 import { SubmitButton } from "../SubmitButton";
 import { Comment } from "../Comment";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export const ReplyModal = ({ comment, post }) => {
+export const ReplyModal = ({ comment, slug }) => {
   const modalRef = useRef(null);
+
+  const queryClient = useQueryClient();
 
   const openModal = () => {
     modalRef.current.openModal();
   };
 
+    const closeModal = () => {
+    modalRef.current.closeModal();
+  };
+
+  const replyMutation = useMutation({
+    mutationFn: (commentData) => {
+      return fetch(`http://localhost:3000/api/comment/${comment.id}/replies`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(commentData)
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error status: ${response.status}`);
+        }
+
+        return response.json();
+      });
+    },
+    onSuccess: () => {
+      closeModal();
+      queryClient.invalidateQueries(["post", slug]);
+    },
+    onError: (error, variables) => {
+      console.error(
+        `Erro ao salvar resposta ao comentário para o slug: ${variables.slug}`,
+        { error }
+      );
+    },
+  })
+
+  const onSubmitCommentReply = (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(event.target);
+    const text = formData.get("text");
+
+    replyMutation.mutate({ comment, text });
+  };
+
   return (
     <>
       <Modal ref={modalRef}>
-        <form>
+        <form onSubmit={onSubmitCommentReply}>
           <div className={styles.body}>
             <Comment comment={comment} />
           </div>
