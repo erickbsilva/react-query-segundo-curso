@@ -36,6 +36,24 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
     //   queryClient.invalidateQueries(["post", post.slug]);
     //   queryClient.invalidateQueries(["posts", currentPage]);
     // },
+    onMutate: async (newData) => {
+      const postQueryKey = ["post", post.slug];
+
+      // cancelar queries em voo para detalhe do post
+      await queryClient.cancelQueries(postQueryKey);
+
+      const prevPost = queryClient.getQueryData(postQueryKey);
+
+      // atualizar um único post
+      if (prevPost) {
+        queryClient.setQueryData(postQueryKey, {
+          ...prevPost,
+          likes: prevPost.likes + 1,
+        });
+      }
+
+      return { prevPost };
+    },
     onError: (error, variables) => {
       console.error(
         `Erro ao salvar o thumbsUp para o slug: ${variables.slug}`,
@@ -45,11 +63,11 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
   });
 
   // atualização otimista via UI
-useEffect(() => {
-    if (thumbsMutation.isPending && thumbsMutation.variables) {
-        post.likes = post.likes + 1;
-    }
-}, [thumbsMutation.isPending, thumbsMutation.variables]);
+  // useEffect(() => {
+  //     if (thumbsMutation.isPending && thumbsMutation.variables) {
+  //         post.likes = post.likes + 1;
+  //     }
+  // }, [thumbsMutation.isPending, thumbsMutation.variables]);
 
   const submitCommentMutation = useMutation({
     mutationFn: (commentData) => {
