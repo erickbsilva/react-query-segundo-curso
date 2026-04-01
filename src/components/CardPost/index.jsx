@@ -36,6 +36,12 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
     //   queryClient.invalidateQueries(["post", post.slug]);
     //   queryClient.invalidateQueries(["posts", currentPage]);
     // },
+    onSuccess: () => {
+      if (currentPage) {
+        queryClient.invalidateQueries(["posts", currentPage]);
+      }
+    },
+    // usa o cache para atualizar o post utilizando o onMutate
     onMutate: async (newData) => {
       const postQueryKey = ["post", post.slug];
 
@@ -59,6 +65,10 @@ export const CardPost = ({ post, highlight, rating, category, isFetching, curren
         `Erro ao salvar o thumbsUp para o slug: ${variables.slug}`,
         { error }
       );
+
+      if (context.prevPost) {
+        queryClient.setQueryData(["post", post.slug], context.prevPost);
+      }
     }
   });
 
